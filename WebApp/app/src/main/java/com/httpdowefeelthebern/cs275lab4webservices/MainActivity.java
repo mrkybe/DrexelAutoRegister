@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -39,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,238 +51,104 @@ import java.net.HttpURLConnection;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
-    public enum URLTarget {GEOIP, WEATHER}
-    // Get GPS location
-
-    // invoke Weather underground hourly weather service to get the current forecast in Async task
-
-    // parse the forecast to get the Date/Time, weather description, temp, relative humidity, for each hour
-
-    // use link to img in result to set the graphic and display all of those things
-
-    // Store the current date and time in a sqlite database on the device indicating the time that
-    // you last queried the forecast, along with the current forecast data (you can store the
-    // entire json document, if that is easier for you). Next time you launch the program,
-    // if the last time you ran the program was within the past hour, display a toast on
-    // the screen to this effect and load the current forecast from the sqlite database
-    // instead of making the network call. It should run a little faster thanks to this cache!
-    TextView locationText;
-    ListView listView;
-    SQLiteDatabase db;
-
-    LocationManager locationManager;
-    LocationListener listener;
-
-    private Boolean gpsStatus = false;
+    TextView textViewResponse;
+    TextView textViewSent;
+    EditText urlText;
+    EditText userIDText;
+    EditText userPasswordText;
+    EditText CRNsText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listView = (ListView)findViewById(R.id.listView);
-        locationText = (TextView)findViewById(R.id.locationText);
-        db = openOrCreateDatabase("lab4db",MODE_PRIVATE,null);
-        db.execSQL("CREATE TABLE IF NOT EXISTS GeoCache(UtcTime INTEGER,Result TEXT);");
-        db.execSQL("CREATE TABLE IF NOT EXISTS WeatherCache(UtcTime INTEGER,Result TEXT);");
-        try{
-            // Check if the database has data thats from within the last hour... if not then do this
-            dataDB();
-        }catch(Exception ex){print(ex.getLocalizedMessage());}
+        textViewResponse = (TextView)findViewById(R.id.textViewResponse);
+        textViewResponse = (TextView)findViewById(R.id.textViewSent);
+        urlText = (EditText)findViewById(R.id.editTextURL);
+        userIDText = (EditText)findViewById(R.id.editTextUserID);
+        userPasswordText = (EditText)findViewById(R.id.editTextPassword);
+        CRNsText = (EditText)findViewById(R.id.editTextCRNs);
     }
 
-    private void dataDB()
+    public void click_send(View view)
     {
         try{
-            Cursor resultSet = db.rawQuery("Select * from GeoCache",null);
-            print("There are " + Integer.toString(resultSet.getCount()) + " rows in the db");
-            if(resultSet.getCount() == 0){
-                callWeatherService();
-            }
-            else
-            {
-                updateUI();
-                updateLocationUI();
-                resultSet.moveToLast();
-                Long UtcTime = resultSet.getLong(0);
-                String Result = resultSet.getString(1);
-                Long diff = (System.currentTimeMillis() - UtcTime) / (1000);
-                print("Last time was " + UtcTime.toString());
-                print("Current time is " + System.currentTimeMillis());
-                print("Difference in time is " + diff + " seconds.");
-                if(diff >= 3)
-                {
-                    print("Data is old!  Refreshing!");
-                    callWeatherService();
-                }
-            }
-        }catch(Exception ex){print(ex.getLocalizedMessage());}
+            sendData();
+        }catch(Exception e){print(e.getLocalizedMessage());}
     }
 
-    private void updateLocationUI() throws Exception
+    private void sendData() throws Exception
     {
-        try{
-            Cursor resultSet = db.rawQuery("Select * from GeoCache",null);
-            print("There are " + Integer.toString(resultSet.getCount()) + " rows in the db");
-            resultSet.moveToLast();
-            String Result = resultSet.getString(1);
+        MakeRequestTask SendDataTask = new MakeRequestTask();
+        String url = urlText.getText().toString();
+        String email = userIDText.getText().toString();
+        String pass = userPasswordText.getText().toString();
+        String crns = CRNsText.getText().toString();
 
-            JSONObject res = new JSONObject(Result).getJSONObject("location");
-            String city = res.getString("city");
-            String state  = res.getString("state");
-            String zip = res.getString("zip");
-            String answer = "Weather for " + city + ", " + state + " " + zip;
-            locationText.setText(answer);
-        }catch(Exception ex){print(ex.getLocalizedMessage());}
+        Data d = new Data(url, email, pass, crns);
+        SendDataTask.execute(d);
     }
 
-    private void updateUI() throws Exception
-    {
-        try{
-            Cursor resultSetWeather = db.rawQuery("Select * from WeatherCache",null);
-            print("There are " + Integer.toString(resultSetWeather.getCount()) + " rows in the db");
-            resultSetWeather.moveToLast();
-            String Result = resultSetWeather.getString(1);
-
-            JSONArray res = new JSONObject(Result).getJSONArray("hourly_forecast");
-            ArrayList<WeatherData> weather = new ArrayList<>();
-            for(int i = 0; i < res.length(); i++)
-            {
-                WeatherData forecast = new WeatherData();
-                JSONObject fc = res.getJSONObject(i);
-                forecast.epoch = fc.getJSONObject("FCTTIME").getInt("epoch");
-                forecast.month = fc.getJSONObject("FCTTIME").getString("month_name");
-                forecast.day = fc.getJSONObject("FCTTIME").getString("weekday_name");
-                forecast.date = fc.getJSONObject("FCTTIME").getString("mday");
-                forecast.hour = fc.getJSONObject("FCTTIME").getString("civil");
-                forecast.weatherDescription = fc.getString("condition");
-                forecast.temperature = fc.getJSONObject("temp").getString("english") + "F";
-                forecast.humidity = fc.getString("humidity");
-                forecast.imgURL = fc.getString("icon_url");
-
-                print(forecast.hour);
-                weather.add(forecast);
-            }
-            Collections.sort(weather, new WeatherComparator());
-            CustomWeatherAdapter adapter = new CustomWeatherAdapter(this, weather);
-            listView.setAdapter(adapter);
-        }catch(Exception ex){print(ex.getLocalizedMessage());}
-    }
-
-
-    private void callWeatherService() throws Exception
-    {
-        MakeRequestTask GeoLookupTask = new MakeRequestTask(System.currentTimeMillis(), URLTarget.GEOIP);
-        GeoLookupTask.execute();
-        MakeRequestTask HourlyLookupTask = new MakeRequestTask(System.currentTimeMillis(), URLTarget.WEATHER);
-        HourlyLookupTask.execute();
-    }
-
-    class MakeRequestTask extends AsyncTask<String, String, String> {
-        String GeoLookupURL = "http://api.wunderground.com/api/073d911d85e3dc47/geolookup/q/autoip.json";
-        String HourlyLookupURL = "http://api.wunderground.com/api/073d911d85e3dc47/hourly/q/autoip.json";
-
-        Long createdUTC;
-        URLTarget target;
-        public MakeRequestTask(Long createdUTC_, URLTarget target_)
+    class MakeRequestTask extends AsyncTask<Data, String, String> {
+        public MakeRequestTask()
         {
-            createdUTC = createdUTC_;
-            target = target_;
         }
 
         @Override
-        protected String doInBackground(String... urls) {
+        protected String doInBackground(Data... datas) {
             String responseString = "";
-            String urlString;
-            if(target  == URLTarget.GEOIP)
-            {
-                urlString = GeoLookupURL;
-                urls = new String[]{GeoLookupURL};
-            }
-            else {
-                urlString = HourlyLookupURL;
-                urls = new String[]{HourlyLookupURL};
-            }
             try {
-                for(String URLin : urls)
+                for(Data data : datas)
                 {
-                    URL url = new URL(URLin);
+                    print("Trying URL: " + data.url + "/register_user");
+                    data.url = data.url + "/register_user";
+                    URL url = new URL(data.url);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestProperty("Accept-Encoding", "identity");
-                    urlConnection.setRequestProperty("Connection","Close");
-                    try {
-                        InputStream in = urlConnection.getInputStream();
-                        InputStreamReader isw = new InputStreamReader(in);
-
-                        int data = isw.read();
-                        while (data != -1) {
-                            char current = (char) data;
-                            responseString += current;
-                            data = isw.read();
-                            //System.out.print(current);
-                        }
-
-                        //responseString += readStream(in);
-                    }catch(Exception ex)
-                    {
-                        print("SOMETHING HAPPEN "+ ex.getLocalizedMessage());
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.addRequestProperty("id", data.email);
+                    urlConnection.addRequestProperty("email",data.email);
+                    urlConnection.addRequestProperty("password",data.pass);
+                    responseString += urlConnection.toString();
+                    //urlConnection.addRequestProperty("crns",data.crns);
+                    //responseString = urlConnection.getErrorStream()
+                    print("test");
+                    String line;
+                    BufferedReader reader = new BufferedReader(new
+                            InputStreamReader(urlConnection.getErrorStream()));
+                    while ((line = reader.readLine()) != null) {
+                        responseString += line;
+                        System.out.println(line);
                     }
-                    finally{
-                        print(urlConnection.getHeaderFields().get("Content-Length").get(0));
-                        urlConnection.disconnect();
-                    }
+                    reader.close();
                 }
             }
             catch (Exception e) {
-                print("SOMETHING BAD HAPPEN "+ e.getLocalizedMessage());
+                e.printStackTrace();
                 //TODO Handle problems..
             }
-            //print("This is the ANSWER: " + responseString);
-            //print("This \n is \n sparta");
             return responseString;
         }
 
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-
-            print("Got Results! " + result);
-            if(target == URLTarget.GEOIP)
-            {
-                print("Put Results in GeoCache!");
-                writeToDB("GeoCache",createdUTC,result);
-                try {
-                    updateLocationUI();
-                }catch(Exception ex)
-                {
-                    print("SOMETHING HAPPEN "+ ex.getLocalizedMessage());
-                }
-            }
-            else if(target == URLTarget.WEATHER)
-            {
-                print("Put Results in Weather Cache!");
-                writeToDB("WeatherCache",createdUTC,result);
-                try {
-                    updateUI();
-                }catch(Exception ex)
-                {
-                    print("SOMETHING HAPPEN "+ ex.getLocalizedMessage());
-                }
-            }
-            else
-            {
-                assert false;
-            }
+            textViewResponse.setText(result);
         }
     }
 
-    protected boolean writeToDB(String targetTable, Long time, String data)
+    class Data
     {
-        ContentValues values = new ContentValues();
-        values.put("UtcTime",time);
-        values.put("Result",data);
-        print(data);
-        boolean success = db.insert(targetTable, null, values) > 0;
-        return success;
+        public String url;
+        public String email;
+        public String pass;
+        public String crns;
+
+        public Data(String url, String email, String pass, String crns) {
+            this.url = url;
+            this.email = email;
+            this.pass = pass;
+            this.crns = crns;
+        }
     }
 
     private void print(String str)

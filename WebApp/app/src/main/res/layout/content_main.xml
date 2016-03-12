@@ -11,16 +11,97 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.httpdowefeelthebern.cs275lab4webservices.MainActivity"
     tools:showIn="@layout/activity_main">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editTextURL"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/textView"
+        android:text="http://68.234.153.67:8080" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/locationText"
-        android:text="Weather for CITY,STATE ZIP"/>
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="ServerURL(debug)"
+        android:id="@+id/textView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignBottom="@+id/editTextURL" />
 
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-        android:headerDividersEnabled="false"
-        android:id="@+id/listView"
-        android:layout_below="@+id/locationText"></ListView>
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editTextUserID"
+        android:layout_below="@+id/editTextURL"
+        android:layout_alignEnd="@+id/editTextURL"
+        android:layout_toEndOf="@+id/textView"
+        android:text="rk553@drexel.edu" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Drexel Email"
+        android:id="@+id/textView2"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="User Password"
+        android:id="@+id/textView3"
+        android:layout_below="@+id/editTextUserID"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editTextPassword"
+        android:layout_below="@+id/editTextUserID"
+        android:layout_alignStart="@+id/editTextUserID"
+        android:layout_alignEnd="@+id/editTextUserID"
+        android:text="ggggg" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="CRNs"
+        android:id="@+id/textView4"
+        android:layout_below="@+id/editTextPassword"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editTextCRNs"
+        android:layout_below="@+id/editTextPassword"
+        android:layout_alignStart="@+id/editTextPassword"
+        android:layout_alignEnd="@+id/editTextPassword"
+        android:text="{a:[&quot;11111&quot;]}" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ServerResponseText"
+        android:id="@+id/textViewResponse"
+        android:layout_below="@+id/buttonRegister"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:id="@+id/buttonRegister"
+        android:layout_below="@+id/editTextCRNs"
+        android:layout_alignEnd="@+id/editTextCRNs"
+        android:layout_alignStart="@+id/editTextCRNs"
+        android:onClick="click_send"/>
+
 </RelativeLayout>
