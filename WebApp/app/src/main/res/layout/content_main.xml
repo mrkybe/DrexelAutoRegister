@@ -38,8 +38,7 @@
         android:id="@+id/editTextUserID"
         android:layout_below="@+id/editTextURL"
         android:layout_alignEnd="@+id/editTextURL"
-        android:layout_toEndOf="@+id/textView"
-        android:text="rk553@drexel.edu" />
+        android:layout_toEndOf="@+id/textView" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -66,8 +65,7 @@
         android:inputType="textPassword"
         android:layout_below="@+id/editTextUserID"
         android:layout_alignStart="@+id/editTextUserID"
-        android:layout_alignEnd="@+id/editTextUserID"
-        android:text="abcde" />
+        android:layout_alignEnd="@+id/editTextUserID" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -84,8 +82,7 @@
         android:id="@+id/editTextCRNs"
         android:layout_below="@+id/editTextPassword"
         android:layout_alignStart="@+id/editTextPassword"
-        android:layout_alignEnd="@+id/editTextPassword"
-        android:text="12345,32214" />
+        android:layout_alignEnd="@+id/editTextPassword" />
 
     <TextView
         android:layout_width="wrap_content"
