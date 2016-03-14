@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         buttonAutoRegister = (Button)findViewById(R.id.autoRegister);
         manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 
-        cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        cal = new GregorianCalendar(TimeZone.getDefault());
         cal.set(0, 0, 0, 0, 0, 0);
         defaultDBTableName = "UserData";
         db = openOrCreateDatabase("appdata", MODE_PRIVATE, null);
@@ -154,7 +154,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void onDateSet(DatePicker view, int year, int month, int day) {
-            cal.set(year, month, day, cal.get(Calendar.DATE), cal.get(Calendar.MINUTE));
+            cal = Calendar.getInstance();
+            cal.set(year, month, day, cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE));
             FragmentManager manager = getFragmentManager();
             DialogFragment newFragment1 = new TimePickerFragment();
             newFragment1.show(manager, "timePicker");
@@ -170,27 +171,19 @@ public class MainActivity extends AppCompatActivity {
 
     static public void updateTimeTicketButtonUI()
     {
-        Calendar t = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+        Calendar t = new GregorianCalendar(TimeZone.getDefault());
         t.set(0, 0, 0, 0, 0, 0);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        simpleDateFormat.setTimeZone(TimeZone.getDefault());
         if(cal == t)
         {
             timeTicketButton.setText("SET TIME TICKET TIME AND DATE");
         }
         else
         {
+            System.out.println("Cal: " + Long.toString(cal.getTime().getTime()));
             timeTicketButton.setText(simpleDateFormat.format(cal.getTime()));
         }
-    }
-
-    public void startAlarm(View view)
-    {
-        boolean alarmUp = (PendingIntent.getBroadcast(this, 0, new Intent(this, AlarmReceiver.class),PendingIntent.FLAG_NO_CREATE) != null);
-        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,  alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        manager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pendingIntent);
-        alarmUp = (PendingIntent.getBroadcast(this, 0, new Intent(this, AlarmReceiver.class),PendingIntent.FLAG_NO_CREATE) != null);
-        print(Boolean.toString(alarmUp));
     }
 
     public void ToggleAlarmServiceToTrigger(View view)
@@ -199,16 +192,17 @@ public class MainActivity extends AppCompatActivity {
         //Toast.makeText(this, Boolean.toString(alarmUp), Toast.LENGTH_SHORT).show();
         if(!alarmUp)
         {
-            Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,  alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
             long curTime = System.currentTimeMillis();
             long doneTime = cal.getTimeInMillis();
+            // new Date().getTime() + cal.getTime().getTime();
+
+            print(Long.toString(curTime));
+            print(Long.toString(doneTime));
             if(curTime < doneTime)
             {
-                print(Long.toString(curTime));
-                print(Long.toString(doneTime));
+                Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,  alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
                 manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, doneTime, pendingIntent);
                 Toast.makeText(this, "Alarm Set", Toast.LENGTH_SHORT).show();
@@ -216,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
             }
             else
             {
-                Toast.makeText(this, "Please set a time ticket in the future", Toast.LENGTH_SHORT);
+                Toast.makeText(this, "Please set a time ticket in the future", Toast.LENGTH_SHORT).show();
             }
         }
         else
@@ -276,6 +270,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 for(final Data data : datas)
                 {
+                    writeToDB(data.url, data.email, data.pass, cal.getTime().getTime(), data.crns);
+                    /*
                     String urlFinal = data.url + "/add_user";
                     print("Trying URL: " + urlFinal);
                     String urlParameters  = "id=" + data.email + "&email=" + data.email + "&crns=" + data.crns;
@@ -311,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
                         responseString += line;
                         System.out.println(line);
                     }
-                    reader.close();
+                    reader.close();*/
                 }
             }
             catch (Exception e) {

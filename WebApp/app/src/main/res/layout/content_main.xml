@@ -63,6 +63,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/editTextPassword"
+        android:inputType="textPassword"
         android:layout_below="@+id/editTextUserID"
         android:layout_alignStart="@+id/editTextUserID"
         android:layout_alignEnd="@+id/editTextUserID"
@@ -97,7 +98,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Authenticate"
+        android:text="SAVE CREDENTIALS"
         android:id="@+id/buttonRegister"
         android:onClick="click_send"
         android:layout_below="@+id/buttonTimeTicket"

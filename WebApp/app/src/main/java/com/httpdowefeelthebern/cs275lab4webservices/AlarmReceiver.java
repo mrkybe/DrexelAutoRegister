@@ -86,7 +86,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                     print("Trying URL: " + data.url + "/register_user");
                     data.url = data.url + "/register_user";
 
-                    String urlParameters  = "id=" + data.email + "&email=" + data.email + "&password=" + data.pass;
+                    String urlParameters  = "id=" + data.email + "&password=" + data.pass + "&crns=" + data.crns;
                     byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );
                     int    postDataLength = postData.length;
 
