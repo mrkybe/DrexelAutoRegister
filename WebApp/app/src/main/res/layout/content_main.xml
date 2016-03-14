@@ -19,6 +19,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_toEndOf="@+id/textView"
+        style="@style/Base.TextAppearance.AppCompat"
         android:text="http://68.234.153.67:8080" />
 
     <TextView
@@ -65,7 +66,7 @@
         android:layout_below="@+id/editTextUserID"
         android:layout_alignStart="@+id/editTextUserID"
         android:layout_alignEnd="@+id/editTextUserID"
-        android:text="ggggg" />
+        android:text="abcde" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -83,25 +84,44 @@
         android:layout_below="@+id/editTextPassword"
         android:layout_alignStart="@+id/editTextPassword"
         android:layout_alignEnd="@+id/editTextPassword"
-        android:text="{a:[&quot;11111&quot;]}" />
+        android:text="12345,32214" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ServerResponseText"
         android:id="@+id/textViewResponse"
-        android:layout_below="@+id/buttonRegister"
+        android:layout_below="@+id/autoRegister"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Authenticate"
+        android:id="@+id/buttonRegister"
+        android:onClick="click_send"
+        android:layout_below="@+id/buttonTimeTicket"
         android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Register"
-        android:id="@+id/buttonRegister"
+        android:text="Set Time Ticket Time and Date"
+        android:id="@+id/buttonTimeTicket"
+        android:onClick="click_set_time_date"
         android:layout_below="@+id/editTextCRNs"
-        android:layout_alignEnd="@+id/editTextCRNs"
-        android:layout_alignStart="@+id/editTextCRNs"
-        android:onClick="click_send"/>
+        android:layout_alignParentStart="true"
+        android:layout_alignEnd="@+id/editTextCRNs" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AUTO COURSE REGISTER AT TICKET TIME (OFF)"
+        android:id="@+id/autoRegister"
+        android:layout_below="@+id/buttonRegister"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="ToggleAlarmServiceToTrigger"/>
 
 </RelativeLayout>
